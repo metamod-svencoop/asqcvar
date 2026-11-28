@@ -25,12 +25,23 @@ void ASQCvar_Shutdown()
     }
 }
 
+static CASModule* GetCurrentASModule()
+{
+    if (ASEXT_GetCurrentModule)
+        return ASEXT_GetCurrentModule();
+
+    auto pServerManager = ASEXT_GetServerManager ? ASEXT_GetServerManager() : NULL;
+    return pServerManager ? pServerManager->curModule : NULL;
+}
+
 bool ASQCvar_SetQueryCvar2Callback(int request_id, aslScriptFunction* aslfn)
 {
     if (g_QueryCvar2Callbacks.find(request_id) != g_QueryCvar2Callbacks.end())
         return false;
 
-    auto callback = ASEXT_CreateCASFunction(aslfn, ASEXT_GetServerManager()->curModule, 1);
+    auto callback = ASEXT_CreateCASFunction(aslfn, GetCurrentASModule(), 1);
+    if (!callback)
+        return false;
 
     g_QueryCvar2Callbacks[request_id] = callback;
 
